@@ -1,0 +1,23 @@
+{
+  "name": "wechat-moments-editor",
+  "version": "1.0.0",
+  "description": "WeChat Moments screenshot editor - modify time, add likes and comments",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["wechat", "moments", "screenshot", "editor"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "canvas": "^2.11.2",
+    "sharp": "^0.33.0",
+    "tesseract.js": "^5.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

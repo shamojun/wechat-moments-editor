@@ -1,0 +1,48 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 用户数据
+data/users.json
+data/*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 日志
+logs/
+*.log
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# Python虚拟环境
+.venv/
+venv/
+__pycache__/
+
+# Railway
+.railway/
+
+# 构建产物
+dist/
+build/

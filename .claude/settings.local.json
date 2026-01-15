@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node test-baby-theme.js:*)",
+      "Bash(node test-parent-child-activities.js:*)",
+      "Bash(node test-smart-comments.js:*)",
+      "Bash(node test-user-management.js:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
