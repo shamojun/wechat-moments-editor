@@ -15,7 +15,7 @@ class ContentGenerator {
     console.log(`主题评论总数: ${this.themeDetector.getTotalCommentCount()}条`);
 
     // 初始化本地头像列表
-    this.localAvatarPath = 'resource/AIgei_images';
+    this.localAvatarPath = 'resource/Aigei_Images';
     this.localAvatars = [];
     this.useLocalAvatars = true;
     this.loadLocalAvatars();
