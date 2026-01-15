@@ -170,18 +170,22 @@ class WeChatMomentsEditor {
 
     // 检测或使用指定的截图类型
     const type = screenshotType || this.detectScreenshotType(image.width, image.height);
+    console.log(`📸 截图尺寸: ${image.width}x${image.height}, 类型: ${type}`);
 
     // 获取布局坐标 - 使用智能检测或默认布局
     let layout;
     if (useSmartDetection) {
-      console.log('使用智能布局检测');
+      console.log('🔍 使用智能布局检测');
       layout = await this.layoutDetector.detectLayout(imageBuffer, image.width, image.height, type);
     } else {
-      console.log('使用默认布局');
+      console.log('📐 使用默认布局');
       layout = type === this.SCREENSHOT_TYPES.DETAIL
         ? this.getDetailLayout(image.width, image.height)
         : this.getTimelineLayout(image.width, image.height);
     }
+
+    console.log(`📍 布局坐标 - 时间:(${layout.time.x}, ${layout.time.y}), 点赞:(${layout.likes.x}, ${layout.likes.y}), 评论:(${layout.comments.x}, ${layout.comments.startY})`);
+    console.log(`👥 点赞数: ${likesCount}, 💬 评论数: ${commentsCount}`);
 
     // 修改时间
     ctx.fillStyle = '#FFFFFF';
