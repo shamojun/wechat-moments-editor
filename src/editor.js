@@ -2,7 +2,9 @@ const { createCanvas, loadImage, registerFont } = require('canvas');
 const AdaptiveLayoutDetector = require('./adaptiveLayoutDetector');
 const SmartLayoutDetector = require('./layoutDetector');
 const ContentGenerator = require('./contentGenerator');
+const AvatarManager = require('./avatarManager');
 const fs = require('fs');
+const path = require('path');
 
 class WeChatMomentsEditor {
   constructor() {
@@ -26,8 +28,12 @@ class WeChatMomentsEditor {
     // 内容生成器（扩展的名字库和评论库）
     this.contentGenerator = new ContentGenerator();
 
+    // 头像管理器
+    this.avatarManager = new AvatarManager();
+
     console.log(`名字库大小: ${this.contentGenerator.getNamePoolSize()}`);
     console.log(`评论库大小: ${this.contentGenerator.getCommentPoolSize()}`);
+    console.log(`头像数量: ${this.avatarManager.getAvatarCount()}`);
   }
 
   /**
@@ -244,67 +250,216 @@ class WeChatMomentsEditor {
     ctx.font = `${layout.time.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
     ctx.fillText(newTime, layout.time.x, layout.time.y);
 
-    // 添加点赞区域（如果需要）
+    // 计算需要清除的总区域（点赞+评论）
     const likeNames = customLikeNames || this.generateRandomNames(likesCount);
-    if (likeNames.length > 0) {
-      // 绘制点赞背景
-      ctx.fillStyle = '#F7F7F7';
-      ctx.fillRect(
-        layout.likes.x - 15,
-        layout.likes.y - 45,
-        layout.likes.width,
-        layout.likes.height
+    const comments = customComments || this.generateRandomComments(commentsCount);
+
+    // 为点赞和评论分配头像
+    const likesWithAvatars = this.avatarManager.assignAvatarsForLikes(likeNames);
+    const commentsWithAvatars = this.avatarManager.assignAvatarsForComments(comments);
+
+    // 先清除整个点赞评论区域（用白色覆盖）
+    if (likesWithAvatars.length > 0 || commentsWithAvatars.length > 0) {
+      const clearStartY = layout.likes.y - 50; // 点赞区域上边界
+      const clearEndY = Math.min(
+        layout.comments.startY + commentsWithAvatars.length * layout.comments.lineHeight + 80,
+        image.height - 50
       );
+      const clearHeight = clearEndY - clearStartY;
 
-      // 绘制点赞图标
-      ctx.fillStyle = '#576B95';
-      ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
-      ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
+      // 用白色填充整个区域，清除原有内容
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(
+        layout.likes.x - 20,
+        clearStartY,
+        layout.likes.width + 40,
+        clearHeight
+      );
+    }
 
-      // 绘制点赞名字（支持换行）
-      ctx.fillStyle = '#576B95';
-      const likeText = likeNames.join('，');
-      this.wrapText(ctx, likeText, layout.likes.x + layout.likes.iconOffset, layout.likes.y, layout.likes.width - layout.likes.iconOffset - 20, layout.likes.fontSize + 8);
+    // 添加点赞区域（如果需要）
+    if (likesWithAvatars.length > 0) {
+      await this.drawLikesWithAvatars(ctx, likesWithAvatars, layout, image);
     }
 
     // 添加评论区域（如果需要）
-    const comments = customComments || this.generateRandomComments(commentsCount);
-    if (comments.length > 0) {
-      let commentY = layout.comments.startY;
-      const maxCommentHeight = image.height - commentY - 100; // 留出底部空间
-
-      // 绘制评论背景
-      const totalCommentHeight = Math.min(comments.length * layout.comments.lineHeight + 30, maxCommentHeight);
-      ctx.fillStyle = '#F7F7F7';
-      ctx.fillRect(
-        layout.comments.x - 15,
-        commentY - 35,
-        layout.comments.width,
-        totalCommentHeight
-      );
-
-      // 绘制评论内容
-      ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
-      comments.forEach((comment, index) => {
-        if (commentY + layout.comments.lineHeight > image.height - 100) {
-          return; // 超出底部则停止绘制
-        }
-
-        // 绘制评论者名字
-        ctx.fillStyle = '#576B95';
-        ctx.fillText(comment.name + ':', layout.comments.x, commentY);
-
-        // 绘制评论内容
-        ctx.fillStyle = '#000000';
-        const nameWidth = ctx.measureText(comment.name + ':').width;
-        ctx.fillText(comment.content, layout.comments.x + nameWidth + 10, commentY);
-
-        commentY += layout.comments.lineHeight;
-      });
+    if (commentsWithAvatars.length > 0) {
+      await this.drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image);
     }
 
     // 转换为Buffer
     return canvas.toBuffer('image/png');
+  }
+
+  /**
+   * 绘制带头像的点赞列表
+   */
+  async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image) {
+    const avatarSize = Math.floor(layout.likes.fontSize * 1.2); // 头像大小
+    const spacing = 8; // 头像间距
+
+    // 绘制点赞背景
+    const bgHeight = avatarSize + 20;
+    ctx.fillStyle = '#F7F7F7';
+    ctx.fillRect(
+      layout.likes.x - 15,
+      layout.likes.y - avatarSize - 5,
+      layout.likes.width,
+      bgHeight
+    );
+
+    // 绘制点赞图标
+    ctx.fillStyle = '#576B95';
+    ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+    ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
+
+    // 绘制点赞头像列表
+    let currentX = layout.likes.x + 45;
+    const maxWidth = layout.likes.width - 60;
+
+    for (const like of likesWithAvatars) {
+      // 检查是否超出宽度
+      if (currentX + avatarSize > layout.likes.x + maxWidth) {
+        break; // 超出则停止绘制更多头像
+      }
+
+      // 加载并绘制头像
+      if (like.avatar) {
+        try {
+          const avatar = await loadImage(like.avatar);
+
+          // 绘制圆形头像
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(
+            currentX + avatarSize / 2,
+            layout.likes.y - avatarSize / 2,
+            avatarSize / 2,
+            0,
+            Math.PI * 2
+          );
+          ctx.closePath();
+          ctx.clip();
+
+          ctx.drawImage(
+            avatar,
+            currentX,
+            layout.likes.y - avatarSize,
+            avatarSize,
+            avatarSize
+          );
+
+          ctx.restore();
+        } catch (error) {
+          console.warn(`⚠️ 加载头像失败: ${like.avatar}`);
+        }
+      }
+
+      currentX += avatarSize + spacing;
+    }
+  }
+
+  /**
+   * 绘制带头像的评论列表
+   */
+  async drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image) {
+    const avatarSize = Math.floor(layout.comments.fontSize * 1.4); // 头像大小
+    const avatarMargin = 12; // 头像右边距
+
+    let commentY = layout.comments.startY;
+    const maxCommentHeight = image.height - commentY - 100;
+
+    // 绘制评论背景
+    const totalCommentHeight = Math.min(
+      commentsWithAvatars.length * layout.comments.lineHeight + 30,
+      maxCommentHeight
+    );
+    ctx.fillStyle = '#F7F7F7';
+    ctx.fillRect(
+      layout.comments.x - 15,
+      commentY - 35,
+      layout.comments.width,
+      totalCommentHeight
+    );
+
+    // 绘制每条评论
+    ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+
+    for (const comment of commentsWithAvatars) {
+      if (commentY + layout.comments.lineHeight > image.height - 100) {
+        break; // 超出底部则停止绘制
+      }
+
+      // 绘制头像
+      if (comment.avatar) {
+        try {
+          const avatar = await loadImage(comment.avatar);
+
+          // 绘制圆形头像
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(
+            layout.comments.x + avatarSize / 2,
+            commentY - avatarSize / 2 + 5,
+            avatarSize / 2,
+            0,
+            Math.PI * 2
+          );
+          ctx.closePath();
+          ctx.clip();
+
+          ctx.drawImage(
+            avatar,
+            layout.comments.x,
+            commentY - avatarSize + 5,
+            avatarSize,
+            avatarSize
+          );
+
+          ctx.restore();
+        } catch (error) {
+          console.warn(`⚠️ 加载评论头像失败: ${comment.avatar}`);
+        }
+      }
+
+      // 计算文本起始位置（头像右侧）
+      const textX = layout.comments.x + avatarSize + avatarMargin;
+      const maxTextWidth = layout.comments.width - avatarSize - avatarMargin - 20;
+
+      // 绘制评论者名字
+      ctx.fillStyle = '#576B95';
+      ctx.fillText(comment.name + ':', textX, commentY);
+
+      // 绘制评论内容
+      ctx.fillStyle = '#000000';
+      const nameWidth = ctx.measureText(comment.name + ':').width;
+      const contentX = textX + nameWidth + 8;
+
+      // 简单换行处理
+      const contentMaxWidth = maxTextWidth - nameWidth - 8;
+      this.drawCommentContent(ctx, comment.content, contentX, commentY, contentMaxWidth);
+
+      commentY += layout.comments.lineHeight;
+    }
+  }
+
+  /**
+   * 绘制评论内容（支持简单换行）
+   */
+  drawCommentContent(ctx, text, x, y, maxWidth) {
+    const metrics = ctx.measureText(text);
+
+    if (metrics.width <= maxWidth) {
+      // 不需要换行
+      ctx.fillText(text, x, y);
+    } else {
+      // 需要换行，截断并添加省略号
+      let truncated = text;
+      while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
+        truncated = truncated.slice(0, -1);
+      }
+      ctx.fillText(truncated + '...', x, y);
+    }
   }
 
   /**
