@@ -8,7 +8,10 @@ aptPkgs = [
     "librsvg2-dev",
     "libpixman-1-dev",
     "pkg-config",
-    "python3"
+    "python3",
+    "fontconfig",
+    "fonts-wqy-zenhei",
+    "fonts-noto-cjk"
 ]
 
 [phases.install]

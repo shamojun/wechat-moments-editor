@@ -90,19 +90,19 @@ class WeChatMomentsEditor {
         clearWidth: 300,
         clearHeight: 45
       },
-      // 点赞区域 - 在时间下方
+      // 点赞区域 - 在底部，避免覆盖内容
       likes: {
         x: width * 0.08,
-        y: height * 0.60,
+        y: height * 0.78,  // 从 0.60 改为 0.78（更靠下）
         width: width * 0.86,
         height: 70,
         fontSize: 28,
         iconOffset: 50
       },
-      // 评论区域 - 点赞区域下方，留出底部评论输入框的空间
+      // 评论区域 - 点赞区域下方
       comments: {
         x: width * 0.08,
-        startY: height * 0.67,
+        startY: height * 0.84,  // 从 0.67 改为 0.84（更靠下）
         width: width * 0.86,
         lineHeight: 60,
         fontSize: 28
