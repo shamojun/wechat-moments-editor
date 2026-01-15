@@ -2,11 +2,16 @@ const { createCanvas, loadImage, registerFont } = require('canvas');
 const sharp = require('sharp');
 const SmartLayoutDetector = require('./layoutDetector');
 const ContentGenerator = require('./contentGenerator');
+const fs = require('fs');
+const path = require('path');
 
 class WeChatMomentsEditor {
   constructor() {
     this.defaultLikesRange = { min: 10, max: 30 };
     this.defaultCommentsRange = { min: 5, max: 12 };
+
+    // 注册系统中文字体
+    this.registerChineseFonts();
 
     // 截图类型
     this.SCREENSHOT_TYPES = {
@@ -22,6 +27,36 @@ class WeChatMomentsEditor {
 
     console.log(`名字库大小: ${this.contentGenerator.getNamePoolSize()}`);
     console.log(`评论库大小: ${this.contentGenerator.getCommentPoolSize()}`);
+  }
+
+  /**
+   * 注册系统中文字体
+   */
+  registerChineseFonts() {
+    try {
+      // Linux 系统字体路径
+      const fontPaths = [
+        '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc'
+      ];
+
+      let registered = false;
+      for (const fontPath of fontPaths) {
+        if (fs.existsSync(fontPath)) {
+          registerFont(fontPath, { family: 'Chinese' });
+          console.log(`✅ 成功注册中文字体: ${fontPath}`);
+          registered = true;
+          break;
+        }
+      }
+
+      if (!registered) {
+        console.log('⚠️  未找到系统中文字体，将使用默认字体（可能无法显示中文）');
+      }
+    } catch (error) {
+      console.error('❌ 注册中文字体失败:', error.message);
+    }
   }
 
   /**
@@ -197,7 +232,7 @@ class WeChatMomentsEditor {
     );
 
     ctx.fillStyle = '#999999';
-    ctx.font = `${layout.time.fontSize}px "Microsoft YaHei", "PingFang SC", sans-serif`;
+    ctx.font = `${layout.time.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
     ctx.fillText(newTime, layout.time.x, layout.time.y);
 
     // 添加点赞区域（如果需要）
@@ -214,7 +249,7 @@ class WeChatMomentsEditor {
 
       // 绘制点赞图标
       ctx.fillStyle = '#576B95';
-      ctx.font = `${layout.likes.fontSize}px "Microsoft YaHei", "PingFang SC", sans-serif`;
+      ctx.font = `${layout.likes.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
       ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
 
       // 绘制点赞名字（支持换行）
@@ -240,7 +275,7 @@ class WeChatMomentsEditor {
       );
 
       // 绘制评论内容
-      ctx.font = `${layout.comments.fontSize}px "Microsoft YaHei", "PingFang SC", sans-serif`;
+      ctx.font = `${layout.comments.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
       comments.forEach((comment, index) => {
         if (commentY + layout.comments.lineHeight > image.height - 100) {
           return; // 超出底部则停止绘制
