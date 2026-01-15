@@ -34,17 +34,23 @@ class WeChatMomentsEditor {
    */
   registerChineseFonts() {
     try {
-      // Linux 系统字体路径
+      // Alpine Linux 和 Debian/Ubuntu 字体路径
       const fontPaths = [
+        // Alpine Linux (Noto CJK)
+        '/usr/share/fonts/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
+        // Debian/Ubuntu
         '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
         '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-        '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc'
+        '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc',
+        // 其他可能路径
+        '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf'
       ];
 
       let registered = false;
       for (const fontPath of fontPaths) {
         if (fs.existsSync(fontPath)) {
-          registerFont(fontPath, { family: 'Chinese' });
+          registerFont(fontPath, { family: 'NotoSansCJK' });
           console.log(`✅ 成功注册中文字体: ${fontPath}`);
           registered = true;
           break;
@@ -52,7 +58,9 @@ class WeChatMomentsEditor {
       }
 
       if (!registered) {
-        console.log('⚠️  未找到系统中文字体，将使用默认字体（可能无法显示中文）');
+        console.log('⚠️  未找到系统中文字体，尝试使用 fontconfig');
+        // 如果找不到具体路径，让 Pango/Cairo 通过 fontconfig 自动查找
+        // Alpine 的 font-noto-cjk 会被 fontconfig 识别
       }
     } catch (error) {
       console.error('❌ 注册中文字体失败:', error.message);
@@ -232,7 +240,7 @@ class WeChatMomentsEditor {
     );
 
     ctx.fillStyle = '#999999';
-    ctx.font = `${layout.time.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
+    ctx.font = `${layout.time.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
     ctx.fillText(newTime, layout.time.x, layout.time.y);
 
     // 添加点赞区域（如果需要）
@@ -249,7 +257,7 @@ class WeChatMomentsEditor {
 
       // 绘制点赞图标
       ctx.fillStyle = '#576B95';
-      ctx.font = `${layout.likes.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
+      ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
       ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
 
       // 绘制点赞名字（支持换行）
@@ -275,7 +283,7 @@ class WeChatMomentsEditor {
       );
 
       // 绘制评论内容
-      ctx.font = `${layout.comments.fontSize}px "Chinese", "Microsoft YaHei", "PingFang SC", sans-serif`;
+      ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
       comments.forEach((comment, index) => {
         if (commentY + layout.comments.lineHeight > image.height - 100) {
           return; // 超出底部则停止绘制
