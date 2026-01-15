@@ -180,18 +180,18 @@ class SmartLayoutDetector {
     const isDetail = screenshotType === 'detail';
 
     if (isDetail) {
-      // 详情页布局
+      // 详情页布局 - 适配1080x2400等竖屏截图
       return {
         time: {
           x: width * 0.28,
-          y: height * 0.535,
+          y: height * 0.535,  // 时间位置：约1284px (at 2400px height)
           fontSize: 28,
           clearWidth: 300,
           clearHeight: 45
         },
         likes: {
           x: width * 0.08,
-          y: height * 0.60,
+          y: height * 0.60,   // 点赞位置：约1440px (at 2400px height)
           width: width * 0.86,
           height: 70,
           fontSize: 28,
@@ -199,7 +199,7 @@ class SmartLayoutDetector {
         },
         comments: {
           x: width * 0.08,
-          startY: height * 0.67,
+          startY: height * 0.67,  // 评论起始：约1608px (at 2400px height)
           width: width * 0.86,
           lineHeight: 60,
           fontSize: 28
