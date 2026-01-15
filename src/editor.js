@@ -1,9 +1,8 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
-const sharp = require('sharp');
+const AdaptiveLayoutDetector = require('./adaptiveLayoutDetector');
 const SmartLayoutDetector = require('./layoutDetector');
 const ContentGenerator = require('./contentGenerator');
 const fs = require('fs');
-const path = require('path');
 
 class WeChatMomentsEditor {
   constructor() {
@@ -19,8 +18,10 @@ class WeChatMomentsEditor {
       TIMELINE: 'timeline'   // 时间线 - 朋友圈列表流
     };
 
-    // 智能布局检测器
-    this.layoutDetector = new SmartLayoutDetector();
+    // 使用自适应布局检测器（不依赖OCR，更稳定）
+    this.layoutDetector = new AdaptiveLayoutDetector();
+    // 保留旧检测器作为备用
+    this.smartLayoutDetector = new SmartLayoutDetector();
 
     // 内容生成器（扩展的名字库和评论库）
     this.contentGenerator = new ContentGenerator();
