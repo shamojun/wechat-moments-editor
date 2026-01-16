@@ -325,8 +325,8 @@ class WeChatMomentsEditor {
    * 绘制带头像的点赞列表
    */
   async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image) {
-    const avatarSize = Math.floor(layout.likes.fontSize * 1.2); // 头像大小
-    const spacing = 8; // 头像间距
+    const avatarSize = Math.floor(layout.likes.fontSize * 1.2);
+    const spacing = 8;
 
     // 绘制点赞区域背景
     const likesBgHeight = avatarSize + 20;
@@ -338,14 +338,14 @@ class WeChatMomentsEditor {
       likesBgHeight
     );
 
-    // 绘制点赞图标（空心爱心）
+    // 绘制点赞图标（空心爱心在最左边）
     ctx.fillStyle = '#576B95';
     ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    ctx.fillText('♡', layout.likes.x + 5, layout.likes.y);
+    ctx.fillText('♡', layout.likes.x, layout.likes.y);
 
-    // 绘制点赞头像列表
-    let currentX = layout.likes.x + 45;
-    const maxWidth = layout.likes.width - 60;
+    // 绘制点赞头像列表（爱心后面）
+    let currentX = layout.likes.x + 35;
+    const maxWidth = layout.likes.width - 50;
 
     for (const like of likesWithAvatars) {
       // 检查是否超出宽度
@@ -398,12 +398,12 @@ class WeChatMomentsEditor {
     const avatarSize = Math.floor(layout.comments.fontSize * 1.4);
     const avatarMargin = 12;
 
-    // 绘制评论区域背景
+    // 绘制评论区域背景（紧贴点赞区域，只有1px间隔）
     const commentsBgHeight = commentsWithAvatars.length * layout.comments.lineHeight + 20;
     ctx.fillStyle = '#F7F7F7';
     ctx.fillRect(
       layout.comments.x - 15,
-      layout.comments.startY - 15,
+      layout.comments.startY - 1,
       layout.comments.width,
       commentsBgHeight
     );
@@ -412,11 +412,16 @@ class WeChatMomentsEditor {
     ctx.strokeStyle = '#E5E5E5';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
-    ctx.moveTo(layout.comments.x - 15, layout.comments.startY - 15);
-    ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY - 15);
+    ctx.moveTo(layout.comments.x - 15, layout.comments.startY - 1);
+    ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY - 1);
     ctx.stroke();
 
-    let commentY = layout.comments.startY;
+    // 绘制评论图标（对话框）
+    ctx.fillStyle = '#576B95';
+    ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.fillText('💬', layout.comments.x, layout.comments.startY + 20);
+
+    let commentY = layout.comments.startY + 10;
 
     // 绘制每条评论
     ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
