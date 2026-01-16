@@ -122,12 +122,27 @@ class WeChatMomentsEditor {
   }
 
   /**
-   * 生成评论时间（2小时内，仅显示时分）
+   * 生成评论时间（基于朋友圈发布时间之后2小时内）
+   * @param {string} postTime - 朋友圈发布时间（如 "1小时前", "刚刚" 等）
    */
-  generateCommentTime() {
+  generateCommentTime(postTime) {
     const now = new Date();
-    const randomMinutesAgo = this.randomInt(1, 120); // 2小时内
-    const commentDate = new Date(now.getTime() - randomMinutesAgo * 60 * 1000);
+    let postDate = now;
+
+    // 解析发布时间
+    if (postTime.includes('分钟前')) {
+      const minutes = parseInt(postTime);
+      postDate = new Date(now.getTime() - minutes * 60 * 1000);
+    } else if (postTime.includes('小时前')) {
+      const hours = parseInt(postTime);
+      postDate = new Date(now.getTime() - hours * 60 * 60 * 1000);
+    } else if (postTime === '刚刚') {
+      postDate = now;
+    }
+
+    // 评论时间在发布时间之后的0-120分钟内
+    const randomMinutesAfter = this.randomInt(1, 120);
+    const commentDate = new Date(postDate.getTime() + randomMinutesAfter * 60 * 1000);
 
     const hour = commentDate.getHours().toString().padStart(2, '0');
     const minute = commentDate.getMinutes().toString().padStart(2, '0');
@@ -312,7 +327,7 @@ class WeChatMomentsEditor {
 
     // 添加评论区域（如果需要）
     if (commentsWithAvatars.length > 0) {
-      await this.drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image);
+      await this.drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image, newTime);
     }
 
     // 转换为Buffer
@@ -390,7 +405,7 @@ class WeChatMomentsEditor {
   /**
    * 绘制带头像的评论列表
    */
-  async drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image) {
+  async drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image, postTime) {
     const avatarSize = Math.floor(layout.comments.fontSize * 1.4); // 头像大小
     const avatarMargin = 12; // 头像右边距
 
@@ -468,7 +483,7 @@ class WeChatMomentsEditor {
       this.drawCommentContent(ctx, comment.content, contentX, commentY, contentMaxWidth);
 
       // 绘制评论时间（右侧）
-      const commentTime = this.generateCommentTime();
+      const commentTime = this.generateCommentTime(postTime);
       ctx.fillStyle = '#999999';
       ctx.font = `${Math.floor(layout.comments.fontSize * 0.85)}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
       const timeWidth = ctx.measureText(commentTime).width;
