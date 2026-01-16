@@ -309,7 +309,7 @@ class WeChatMomentsEditor {
 
     // 添加点赞区域（如果需要）
     if (likesWithAvatars.length > 0) {
-      await this.drawLikesWithAvatars(ctx, likesWithAvatars, layout, image, commentsWithAvatars.length);
+      await this.drawLikesWithAvatars(ctx, likesWithAvatars, layout, image);
     }
 
     // 添加评论区域（如果需要）
@@ -324,24 +324,18 @@ class WeChatMomentsEditor {
   /**
    * 绘制带头像的点赞列表
    */
-  async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image, commentsCount) {
+  async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image) {
     const avatarSize = Math.floor(layout.likes.fontSize * 1.2); // 头像大小
     const spacing = 8; // 头像间距
 
-    // 计算统一背景高度（点赞+评论连在一起，无间隙）
-    const bgStartY = layout.likes.y - avatarSize - 5;
-    const commentsEndY = commentsCount > 0
-      ? layout.comments.startY + commentsCount * layout.comments.lineHeight + 10
-      : layout.likes.y + 15;
-    const totalBgHeight = commentsEndY - bgStartY;
-
-    // 绘制统一的灰色背景（点赞和评论连在一起）
+    // 绘制点赞区域背景
+    const likesBgHeight = avatarSize + 20;
     ctx.fillStyle = '#F7F7F7';
     ctx.fillRect(
       layout.likes.x - 15,
-      bgStartY,
+      layout.likes.y - avatarSize - 5,
       layout.likes.width,
-      totalBgHeight
+      likesBgHeight
     );
 
     // 绘制点赞图标（空心爱心）
@@ -399,12 +393,32 @@ class WeChatMomentsEditor {
    * 绘制带头像的评论列表
    */
   async drawCommentsWithAvatars(ctx, commentsWithAvatars, layout, image, postTime) {
-    const avatarSize = Math.floor(layout.comments.fontSize * 1.4); // 头像大小
-    const avatarMargin = 12; // 头像右边距
+    if (commentsWithAvatars.length === 0) return;
+
+    const avatarSize = Math.floor(layout.comments.fontSize * 1.4);
+    const avatarMargin = 12;
+
+    // 绘制评论区域背景
+    const commentsBgHeight = commentsWithAvatars.length * layout.comments.lineHeight + 20;
+    ctx.fillStyle = '#F7F7F7';
+    ctx.fillRect(
+      layout.comments.x - 15,
+      layout.comments.startY - 15,
+      layout.comments.width,
+      commentsBgHeight
+    );
+
+    // 绘制分隔线
+    ctx.strokeStyle = '#E5E5E5';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(layout.comments.x - 15, layout.comments.startY - 15);
+    ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY - 15);
+    ctx.stroke();
 
     let commentY = layout.comments.startY;
 
-    // 绘制每条评论（背景已在点赞区域统一绘制）
+    // 绘制每条评论
     ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
 
     for (const comment of commentsWithAvatars) {
