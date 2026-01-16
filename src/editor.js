@@ -328,16 +328,18 @@ class WeChatMomentsEditor {
     const avatarSize = Math.floor(layout.likes.fontSize * 1.2); // 头像大小
     const spacing = 8; // 头像间距
 
-    // 计算统一背景高度（点赞+评论连在一起）
-    const likesBgHeight = avatarSize + 20;
-    const commentsBgHeight = commentsCount > 0 ? commentsCount * layout.comments.lineHeight + 30 : 0;
-    const totalBgHeight = likesBgHeight + commentsBgHeight;
+    // 计算统一背景高度（点赞+评论连在一起，无间隙）
+    const bgStartY = layout.likes.y - avatarSize - 5;
+    const commentsEndY = commentsCount > 0
+      ? layout.comments.startY + commentsCount * layout.comments.lineHeight + 10
+      : layout.likes.y + 15;
+    const totalBgHeight = commentsEndY - bgStartY;
 
     // 绘制统一的灰色背景（点赞和评论连在一起）
     ctx.fillStyle = '#F7F7F7';
     ctx.fillRect(
       layout.likes.x - 15,
-      layout.likes.y - avatarSize - 5,
+      bgStartY,
       layout.likes.width,
       totalBgHeight
     );
