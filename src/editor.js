@@ -398,22 +398,22 @@ class WeChatMomentsEditor {
     const avatarSize = Math.floor(layout.comments.fontSize * 1.4);
     const avatarMargin = 12;
 
-    // 绘制评论区域背景（紧贴点赞区域，只有1px间隔）
+    // 绘制评论区域背景（紧贴点赞区域下方）
     const commentsBgHeight = commentsWithAvatars.length * layout.comments.lineHeight + 20;
     ctx.fillStyle = '#F7F7F7';
     ctx.fillRect(
       layout.comments.x - 15,
-      layout.comments.startY - 1,
+      layout.comments.startY,
       layout.comments.width,
       commentsBgHeight
     );
 
-    // 绘制分隔线
+    // 绘制分隔线（在点赞和评论之间）
     ctx.strokeStyle = '#E5E5E5';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
-    ctx.moveTo(layout.comments.x - 15, layout.comments.startY - 1);
-    ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY - 1);
+    ctx.moveTo(layout.comments.x - 15, layout.comments.startY);
+    ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY);
     ctx.stroke();
 
     // 绘制评论图标（对话框）
