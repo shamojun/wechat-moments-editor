@@ -309,7 +309,7 @@ class WeChatMomentsEditor {
 
     // 添加点赞区域（如果需要）
     if (likesWithAvatars.length > 0) {
-      await this.drawLikesWithAvatars(ctx, likesWithAvatars, layout, image);
+      await this.drawLikesWithAvatars(ctx, likesWithAvatars, layout, image, commentsWithAvatars.length);
     }
 
     // 添加评论区域（如果需要）
@@ -324,24 +324,28 @@ class WeChatMomentsEditor {
   /**
    * 绘制带头像的点赞列表
    */
-  async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image) {
+  async drawLikesWithAvatars(ctx, likesWithAvatars, layout, image, commentsCount) {
     const avatarSize = Math.floor(layout.likes.fontSize * 1.2); // 头像大小
     const spacing = 8; // 头像间距
 
-    // 绘制点赞背景
-    const bgHeight = avatarSize + 20;
+    // 计算统一背景高度（点赞+评论连在一起）
+    const likesBgHeight = avatarSize + 20;
+    const commentsBgHeight = commentsCount > 0 ? commentsCount * layout.comments.lineHeight + 30 : 0;
+    const totalBgHeight = likesBgHeight + commentsBgHeight;
+
+    // 绘制统一的灰色背景（点赞和评论连在一起）
     ctx.fillStyle = '#F7F7F7';
     ctx.fillRect(
       layout.likes.x - 15,
       layout.likes.y - avatarSize - 5,
       layout.likes.width,
-      bgHeight
+      totalBgHeight
     );
 
-    // 绘制点赞图标
+    // 绘制点赞图标（空心爱心）
     ctx.fillStyle = '#576B95';
     ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
+    ctx.fillText('♡', layout.likes.x + 5, layout.likes.y);
 
     // 绘制点赞头像列表
     let currentX = layout.likes.x + 45;
@@ -397,22 +401,8 @@ class WeChatMomentsEditor {
     const avatarMargin = 12; // 头像右边距
 
     let commentY = layout.comments.startY;
-    const maxCommentHeight = image.height - commentY - 100;
 
-    // 绘制评论背景
-    const totalCommentHeight = Math.min(
-      commentsWithAvatars.length * layout.comments.lineHeight + 30,
-      maxCommentHeight
-    );
-    ctx.fillStyle = '#F7F7F7';
-    ctx.fillRect(
-      layout.comments.x - 15,
-      commentY - 35,
-      layout.comments.width,
-      totalCommentHeight
-    );
-
-    // 绘制每条评论
+    // 绘制每条评论（背景已在点赞区域统一绘制）
     ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
 
     for (const comment of commentsWithAvatars) {
