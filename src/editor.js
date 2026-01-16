@@ -122,51 +122,17 @@ class WeChatMomentsEditor {
   }
 
   /**
-   * 生成评论时间（符合微信朋友圈规则）
-   * - 1分钟内：刚刚
-   * - 1小时内：X分钟前
-   * - 今天：HH:MM
-   * - 昨天：昨天 HH:MM
-   * - 今年：M月D日 HH:MM
-   * - 往年：YYYY年M月D日 HH:MM
+   * 生成评论时间（2小时内，仅显示时分）
    */
   generateCommentTime() {
     const now = new Date();
-    const randomMinutesAgo = this.randomInt(1, 60 * 24 * 30); // 最多30天前
+    const randomMinutesAgo = this.randomInt(1, 120); // 2小时内
     const commentDate = new Date(now.getTime() - randomMinutesAgo * 60 * 1000);
-
-    const diffMinutes = Math.floor((now - commentDate) / (60 * 1000));
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
 
     const hour = commentDate.getHours().toString().padStart(2, '0');
     const minute = commentDate.getMinutes().toString().padStart(2, '0');
-    const month = commentDate.getMonth() + 1;
-    const day = commentDate.getDate();
-    const year = commentDate.getFullYear();
 
-    // 1分钟内
-    if (diffMinutes < 1) {
-      return '刚刚';
-    }
-    // 1小时内
-    if (diffMinutes < 60) {
-      return `${diffMinutes}分钟前`;
-    }
-    // 今天
-    if (diffDays === 0) {
-      return `${hour}:${minute}`;
-    }
-    // 昨天
-    if (diffDays === 1) {
-      return `昨天 ${hour}:${minute}`;
-    }
-    // 今年
-    if (year === now.getFullYear()) {
-      return `${month}月${day}日 ${hour}:${minute}`;
-    }
-    // 往年
-    return `${year}年${month}月${day}日 ${hour}:${minute}`;
+    return `${hour}:${minute}`;
   }
 
   /**
