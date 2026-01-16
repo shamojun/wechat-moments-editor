@@ -280,19 +280,6 @@ class WeChatMomentsEditor {
     console.log(`📍 布局坐标 - 时间:(${layout.time.x}, ${layout.time.y}), 点赞:(${layout.likes.x}, ${layout.likes.y}), 评论:(${layout.comments.x}, ${layout.comments.startY})`);
     console.log(`👥 点赞数: ${likesCount}, 💬 评论数: ${commentsCount}`);
 
-    // 修改时间 - 扩大清除区域以完全覆盖原有时间
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(
-      layout.time.x - 20,
-      layout.time.y - layout.time.clearHeight,
-      layout.time.clearWidth + 100,
-      layout.time.clearHeight + 10
-    );
-
-    ctx.fillStyle = '#999999';
-    ctx.font = `${layout.time.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Microsoft YaHei", "PingFang SC", sans-serif`;
-    ctx.fillText(newTime, layout.time.x, layout.time.y);
-
     // 计算需要清除的总区域（点赞+评论）
     const likeNames = customLikeNames || this.generateRandomNames(likesCount);
     const comments = customComments || this.generateRandomComments(commentsCount);
