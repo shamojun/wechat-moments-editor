@@ -416,12 +416,7 @@ class WeChatMomentsEditor {
     ctx.lineTo(layout.comments.x - 15 + layout.comments.width, layout.comments.startY);
     ctx.stroke();
 
-    // 绘制评论图标（对话框）
-    ctx.fillStyle = '#576B95';
-    ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    ctx.fillText('💬', layout.comments.x, layout.comments.startY + 20);
-
-    let commentY = layout.comments.startY + 10;
+    let commentY = layout.comments.startY + 35;
 
     // 绘制每条评论
     ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
