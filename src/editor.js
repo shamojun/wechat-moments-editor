@@ -37,7 +37,7 @@ class WeChatMomentsEditor {
   }
 
   /**
-   * 注册系统中文字体
+   * 注册系统中文字体和 Emoji 字体
    */
   registerChineseFonts() {
     try {
@@ -60,6 +60,20 @@ class WeChatMomentsEditor {
           registerFont(fontPath, { family: 'NotoSansCJK' });
           console.log(`✅ 成功注册中文字体: ${fontPath}`);
           registered = true;
+          break;
+        }
+      }
+
+      // 注册 Emoji 字体
+      const emojiFontPaths = [
+        '/usr/share/fonts/noto/NotoColorEmoji.ttf',
+        '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
+      ];
+
+      for (const emojiPath of emojiFontPaths) {
+        if (fs.existsSync(emojiPath)) {
+          registerFont(emojiPath, { family: 'Noto Color Emoji' });
+          console.log(`✅ 成功注册 Emoji 字体: ${emojiPath}`);
           break;
         }
       }
@@ -108,16 +122,51 @@ class WeChatMomentsEditor {
   }
 
   /**
-   * 生成评论时间（格式：2025年8月10日 17:22）
+   * 生成评论时间（符合微信朋友圈规则）
+   * - 1分钟内：刚刚
+   * - 1小时内：X分钟前
+   * - 今天：HH:MM
+   * - 昨天：昨天 HH:MM
+   * - 今年：M月D日 HH:MM
+   * - 往年：YYYY年M月D日 HH:MM
    */
   generateCommentTime() {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-    const hour = this.randomInt(0, 23);
-    const minute = this.randomInt(0, 59);
-    return `${year}年${month}月${day}日 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    const randomMinutesAgo = this.randomInt(1, 60 * 24 * 30); // 最多30天前
+    const commentDate = new Date(now.getTime() - randomMinutesAgo * 60 * 1000);
+
+    const diffMinutes = Math.floor((now - commentDate) / (60 * 1000));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    const hour = commentDate.getHours().toString().padStart(2, '0');
+    const minute = commentDate.getMinutes().toString().padStart(2, '0');
+    const month = commentDate.getMonth() + 1;
+    const day = commentDate.getDate();
+    const year = commentDate.getFullYear();
+
+    // 1分钟内
+    if (diffMinutes < 1) {
+      return '刚刚';
+    }
+    // 1小时内
+    if (diffMinutes < 60) {
+      return `${diffMinutes}分钟前`;
+    }
+    // 今天
+    if (diffDays === 0) {
+      return `${hour}:${minute}`;
+    }
+    // 昨天
+    if (diffDays === 1) {
+      return `昨天 ${hour}:${minute}`;
+    }
+    // 今年
+    if (year === now.getFullYear()) {
+      return `${month}月${day}日 ${hour}:${minute}`;
+    }
+    // 往年
+    return `${year}年${month}月${day}日 ${hour}:${minute}`;
   }
 
   /**
@@ -260,7 +309,7 @@ class WeChatMomentsEditor {
     );
 
     ctx.fillStyle = '#999999';
-    ctx.font = `${layout.time.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif`;
+    ctx.font = `${layout.time.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Microsoft YaHei", "PingFang SC", sans-serif`;
     ctx.fillText(newTime, layout.time.x, layout.time.y);
 
     // 计算需要清除的总区域（点赞+评论）
@@ -323,7 +372,7 @@ class WeChatMomentsEditor {
 
     // 绘制点赞图标
     ctx.fillStyle = '#576B95';
-    ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+    ctx.font = `${layout.likes.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
     ctx.fillText('❤', layout.likes.x + 5, layout.likes.y);
 
     // 绘制点赞头像列表
@@ -396,7 +445,7 @@ class WeChatMomentsEditor {
     );
 
     // 绘制每条评论
-    ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+    ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
 
     for (const comment of commentsWithAvatars) {
       if (commentY + layout.comments.lineHeight > image.height - 100) {
@@ -460,7 +509,7 @@ class WeChatMomentsEditor {
       ctx.fillText(commentTime, layout.comments.x + layout.comments.width - timeWidth - 30, commentY);
 
       // 恢复字体大小
-      ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+      ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
 
       commentY += layout.comments.lineHeight;
     }

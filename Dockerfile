@@ -13,6 +13,7 @@ RUN apk add --no-cache \
     fontconfig \
     ttf-dejavu \
     font-noto-cjk \
+    font-noto-emoji \
     && fc-cache -fv
 
 WORKDIR /app
