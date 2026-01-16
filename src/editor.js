@@ -108,6 +108,19 @@ class WeChatMomentsEditor {
   }
 
   /**
+   * 生成评论时间（格式：2025年8月10日 17:22）
+   */
+  generateCommentTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const hour = this.randomInt(0, 23);
+    const minute = this.randomInt(0, 59);
+    return `${year}年${month}月${day}日 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  }
+
+  /**
    * 生成随机昵称（使用ContentGenerator）
    */
   generateRandomNames(count) {
@@ -237,13 +250,13 @@ class WeChatMomentsEditor {
     console.log(`📍 布局坐标 - 时间:(${layout.time.x}, ${layout.time.y}), 点赞:(${layout.likes.x}, ${layout.likes.y}), 评论:(${layout.comments.x}, ${layout.comments.startY})`);
     console.log(`👥 点赞数: ${likesCount}, 💬 评论数: ${commentsCount}`);
 
-    // 修改时间
+    // 修改时间 - 扩大清除区域以完全覆盖原有时间
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(
-      layout.time.x - 10,
-      layout.time.y - layout.time.clearHeight + 10,
-      layout.time.clearWidth,
-      layout.time.clearHeight
+      layout.time.x - 20,
+      layout.time.y - layout.time.clearHeight,
+      layout.time.clearWidth + 100,
+      layout.time.clearHeight + 10
     );
 
     ctx.fillStyle = '#999999';
@@ -424,7 +437,7 @@ class WeChatMomentsEditor {
 
       // 计算文本起始位置（头像右侧）
       const textX = layout.comments.x + avatarSize + avatarMargin;
-      const maxTextWidth = layout.comments.width - avatarSize - avatarMargin - 20;
+      const maxTextWidth = layout.comments.width - avatarSize - avatarMargin - 180; // 为时间留出空间
 
       // 绘制评论者名字
       ctx.fillStyle = '#576B95';
@@ -438,6 +451,16 @@ class WeChatMomentsEditor {
       // 简单换行处理
       const contentMaxWidth = maxTextWidth - nameWidth - 8;
       this.drawCommentContent(ctx, comment.content, contentX, commentY, contentMaxWidth);
+
+      // 绘制评论时间（右侧）
+      const commentTime = this.generateCommentTime();
+      ctx.fillStyle = '#999999';
+      ctx.font = `${Math.floor(layout.comments.fontSize * 0.85)}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
+      const timeWidth = ctx.measureText(commentTime).width;
+      ctx.fillText(commentTime, layout.comments.x + layout.comments.width - timeWidth - 30, commentY);
+
+      // 恢复字体大小
+      ctx.font = `${layout.comments.fontSize}px "NotoSansCJK", "Noto Sans CJK SC", sans-serif`;
 
       commentY += layout.comments.lineHeight;
     }
